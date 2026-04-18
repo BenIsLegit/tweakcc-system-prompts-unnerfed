@@ -1,0 +1,26 @@
+# Local editor / IDE state
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# tweakcc working-directory artifacts we deliberately do NOT mirror
+native-binary.backup
+native-claudejs-orig.js
+native-claudejs-patched.js
+systemPromptAppliedHashes.json
+systemPromptOriginalHashes.json
+cli.js.backup
+config.json
+prompt-data-cache/
+system-prompts/*.diff.html
+
+# Claude Code / Serena / other tool state
+.claude/
+.serena/
