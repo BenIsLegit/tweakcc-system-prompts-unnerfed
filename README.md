@@ -295,6 +295,7 @@ Most prompts stand alone. If you only want the un-nerfed [`system-prompt-communi
 
 - **[tweakcc](https://github.com/Piebald-AI/tweakcc)** by Piebald AI — the tool that made any of this possible. Without tweakcc I would be hex-editing a Bun binary.
 - **[roman01la's patch-claude-code.sh gist](https://gist.github.com/roman01la/483d1db15043018096ac3babf5688881)** — the original thesis (15:3 brevity-vs-thoroughness imbalance) and the first 11 patches, which I translated into the initial tweakcc-format edits in this repo.
+  - **PR's #8 textual refinement** — widened the phrase gate in [`agent-prompt-explore.md`](./system-prompts/agent-prompt-explore.md) from the literal `"very thorough"` to any caller request for `thorough` exploration, so the exhaustive-search clause now fires on a broader range of caller phrasings. Applied here and in the upstream tweakcc working copy.
 - **Anthropic** — for Claude Code, and for not going out of their way to stop community patching.
 
 ---
