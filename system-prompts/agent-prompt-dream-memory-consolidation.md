@@ -4,7 +4,7 @@ description: >-
   Instructs an agent to perform a multi-phase memory consolidation pass —
   orienting on existing memories, gathering recent signal from logs and
   transcripts, merging updates into topic files, and pruning the index
-ccVersion: 2.1.98
+ccVersion: 2.1.116
 variables:
   - MEMORY_DIR
   - MEMORY_DIR_CONTEXT
@@ -34,13 +34,13 @@ ${TRANSCRIPT_SOURCE_NOTE}
 - \`ls\` the memory directory to see what already exists
 - Read \`${INDEX_FILE}\` to understand the current index
 - Skim existing topic files so you improve them rather than creating duplicates
-- If \`logs/\` or \`sessions/\` subdirectories exist (assistant-mode layout), review recent entries there
+- \`ls logs/\` — recent daily activity logs (one file per day). If a \`sessions/\` subdirectory also exists, review recent entries there too
 
 ## Phase 2 — Gather recent signal
 
 Look for new information worth persisting. Sources in rough priority order:
 
-1. **Daily logs** (\`logs/YYYY/MM/YYYY-MM-DD.md\`) if present — these are the append-only stream
+1. **Daily logs** (\`logs/YYYY/MM/YYYY-MM-DD.md\`) — the append-only activity stream. Read the most recent 1–3 days; each line is prefix-coded (\`>\` user, \`<\` assistant, \`.\` tool call)
 2. **Existing memories that drifted** — facts that contradict something you see in the codebase now
 3. **Transcript search** — if you need specific context (e.g., "what was the error message from yesterday's build failure?"), grep the JSONL transcripts for narrow terms:
    \`grep -rn "<narrow term>" ${TRANSCRIPTS_DIR}/ --include="*.jsonl" | tail -50\`

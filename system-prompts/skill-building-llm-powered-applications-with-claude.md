@@ -5,7 +5,7 @@ description: >-
   covering language detection, API surface selection (Claude API vs Managed
   Agents), model defaults, thinking/effort configuration, and language-specific
   documentation reading
-ccVersion: 2.1.111
+ccVersion: 2.1.116
 -->
 # Building LLM-Powered Applications with Claude
 
@@ -38,7 +38,9 @@ For the Claude model version, please use {{OPUS_NAME}}, which you can access via
 
 If the User Request at the bottom of this prompt is a bare subcommand string (no prose), search every **Subcommands** table in this document — including any in sections appended below — and follow the matching Action column directly. This lets users invoke specific flows via `/claude-api <subcommand>`. If no table in the document matches, treat the request as normal prose.
 
-<!-- Subcommand tables are defined per-section below; this header block contains only the dispatch rule so that feature-gated sections can add their own tables without leaking strings into ungated builds. -->
+| Subcommand | Action |
+|---|---|
+| `migrate` | Migrate existing Claude API code to a newer model. **Read `shared/model-migration.md` immediately** and follow it in order: Step 0 (confirm scope — ask which files/directories before any edit), Step 1 (classify each file), then the per-target breaking-changes section. Do not summarize the guide — execute it. If the user did not name a target model, ask which model to migrate to in the same turn as the scope question. |
 
 ---
 
