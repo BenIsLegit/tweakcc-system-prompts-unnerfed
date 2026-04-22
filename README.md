@@ -4,7 +4,9 @@ A public, downloadable set of modified [Claude Code](https://docs.claude.com/en/
 
 These are the actual files I use daily on my own machine. This repository is the publicly shared mirror of `~/.tweakcc/system-prompts/` — the working directory that [tweakcc](https://github.com/Piebald-AI/tweakcc) extracts Claude Code's system prompts into so I can edit them. Nothing is reconstructed or cleaned up for public consumption; this is the live set, including all of my in-progress un-nerfs.
 
-**Currently aligned with: Claude Code v2.1.116.** When Anthropic ships a newer Claude Code release, tweakcc's re-extract will wipe every un-nerfed prompt back to fresh stock — run [`python scripts/apply-unnerfs.py`](./scripts/apply-unnerfs.py) to put them back idempotently, then read the script's per-file report to see which rules (if any) need updating for upstream drift. Full workflow documented in [Maintenance](#maintenance-re-applying-un-nerfs-after-a-claude-code-version-bump).
+**Currently aligned with: Claude Code v2.1.116.** Upstream [tweakcc](https://github.com/Piebald-AI/tweakcc) has not yet been updated for Claude Code releases newer than v2.1.113 — until it catches up, use the [**`tweakcc-fixed`**](https://github.com/BenIsLegit/tweakcc-fixed) fork (`npx tweakcc-fixed@latest`), which bundles the required upstream PRs plus several additional fixes. See [Which tweakcc fork to use](#which-tweakcc-fork-to-use-while-upstream-catches-up) below for details.
+
+When Anthropic ships a newer Claude Code release, the supported re-patch flow is: **clear** `~/.tweakcc/system-prompts/`, **re-run tweakcc** to regenerate fresh stock `.md` files, **copy them into this repo's `system-prompts/`** (overwriting), **run [`python scripts/apply-unnerfs.py`](./scripts/apply-unnerfs.py)** to re-apply every un-nerf idempotently, **resolve any `FAIL`s** against drifted upstream wording (normal git-reviewable edits here), then **copy the un-nerfed result back to `~/.tweakcc/system-prompts/`** and run tweakcc's apply step. This wipe-then-regen path is required because tweakcc does **not** overwrite user-edited `.md` files — on conflict it writes an HTML diff file next to each changed prompt and leaves the `.md` alone, which would otherwise leave your working directory in a half-upgraded state. Full workflow documented in [Maintenance](#maintenance-re-applying-un-nerfs-after-a-claude-code-version-bump).
 
 ---
 
@@ -61,6 +63,21 @@ Result: you can edit any Claude Code system prompt with a normal text editor, sa
 The script in [roman01la's gist](https://gist.github.com/roman01la/483d1db15043018096ac3babf5688881) (more on it below) predates the native-binary era of Claude Code. It worked by installing Claude Code from npm (which shipped plain JavaScript `cli.js`), running a series of `sed`-style string replacements against the prompt text, and repointing the `claude` symlink to the patched npm build. As of Claude Code **v2.1.113** Anthropic moved to a compiled Bun native binary with bytecode integrity checks — the gist's approach is obsolete against the current release.
 
 tweakcc is the modern equivalent: same philosophy (edit the prompts), different mechanism (binary patching with hash verification and rollback). This repo's files are the tweakcc-format equivalents of the patches the gist was originally trying to apply, extended to cover many more prompts than the gist touched.
+
+### Which tweakcc fork to use (while upstream catches up)
+
+Upstream [Piebald-AI/tweakcc](https://github.com/Piebald-AI/tweakcc) (last published release `4.0.11`, based on commit `2e1d03e` — _Prompts for 2.1.113_) has **not** yet been updated for Claude Code releases newer than v2.1.113. Running stock upstream tweakcc against a v2.1.114+ binary fails at apply time because several patch regexes don't match the new minified shapes, and a few long-open upstream PRs that are required for the tool to function on recent CC builds haven't merged yet.
+
+Until upstream catches up, use the [**BenIsLegit/tweakcc-fixed**](https://github.com/BenIsLegit/tweakcc-fixed) fork, published to npm as [`tweakcc-fixed`](https://www.npmjs.com/package/tweakcc-fixed). It bundles the required upstream PRs (#601 WASMagic import guard, #646 React Compiler output support, #655 Bun bytecode fallback + `clearBytecode`, #664 `\"` handling) plus additional fixes on top (scoped backslash-doubling, `verbose:X` destructure guard, adapted 2.1.113 minified-shape regexes, and a pile of `userMessageDisplay` fixes for theme bg, padding, wrapped-line bg, and the long-paste `[object Object]` bug). The fork targets Claude Code up to and including **2.1.116**.
+
+Install via npx — always with `@latest` because the fork iterates frequently as new CC versions ship:
+
+```bash
+npx tweakcc-fixed@latest            # interactive UI
+npx tweakcc-fixed@latest --apply    # apply customizations from ~/.tweakcc/config.json
+```
+
+Everywhere this README says "run tweakcc", substitute `npx tweakcc-fixed@latest` for now. Once the required PRs land upstream, switch back to plain `tweakcc` — the `~/.tweakcc/` layout and config format are identical between the two.
 
 ---
 
@@ -262,7 +279,7 @@ Counted by filename prefix:
 
 ## Compatibility notes
 
-- **Claude Code version.** These files are aligned with Claude Code v2.1.116. Individual prompts carry their own `ccVersion:` frontmatter ranging from v2.0.14 (oldest surviving prompt) to the current release. When Anthropic ships a newer Claude Code, prompts may be added, removed, or re-worded upstream. Re-running tweakcc against the new version will re-extract fresh stock copies. Then run [`python scripts/apply-unnerfs.py`](./scripts/apply-unnerfs.py) to idempotently re-apply every un-nerf; the script prints a per-file report telling you exactly which rules need updating if upstream text has drifted. `systemPromptOriginalHashes.json` is how tweakcc knows which prompts are unchanged vs. modified on a given binary; the script doesn't use those hashes directly — it works purely on stock-text-in-file detection.
+- **Claude Code version.** These files are aligned with Claude Code v2.1.116. Individual prompts carry their own `ccVersion:` frontmatter ranging from v2.0.14 (oldest surviving prompt) to the current release. When Anthropic ships a newer Claude Code, prompts may be added, removed, or re-worded upstream. Getting a clean re-extract requires **clearing** `~/.tweakcc/system-prompts/` first — tweakcc does not overwrite user-edited files, it writes an HTML diff alongside each conflicted prompt, which is why the maintenance workflow wipes the directory before re-running tweakcc. After the clean re-extract, copy the fresh stock into this repo and run [`python scripts/apply-unnerfs.py`](./scripts/apply-unnerfs.py) here to idempotently re-apply every un-nerf; the script prints a per-file report telling you exactly which rules need updating if upstream text has drifted. `systemPromptOriginalHashes.json` is how tweakcc knows which prompts are unchanged vs. modified on a given binary; the script doesn't use those hashes directly — it works purely on stock-text-in-file detection.
 - **Model family.** These prompts are tuned for current Claude models (Opus 4.7 / Sonnet 4.6 / Haiku 4.5 as of January 2026). Older models may follow the un-nerfed prompts differently — in particular, the "think more, verbose is fine, use space the work warrants" directives may cause older/smaller models to over-explain even simple responses. Test on your own workload.
 - **Risk of over-verbosity.** This is the main failure mode to watch for. If you apply all of these and suddenly Claude Code is giving you a 15-paragraph essay in response to "what time is it?", that's because the un-nerfed communication prompt is instructing it to be thorough. The [un-nerf thesis](#the-un-nerf-thesis) tried to preserve chat brevity for simple requests, but there's always going to be some spillover. If you see this, the first place to look is `system-prompt-communication-style.md` and `system-prompt-tone-concise-output-short.md`.
 - **Token cost.** Thorough output uses more tokens than brief output. Plan accordingly.
@@ -271,21 +288,29 @@ Counted by filename prefix:
 
 ## How to use these prompts yourself
 
-**Option A — with tweakcc (recommended):**
+**Option A — with tweakcc-fixed (recommended):**
 
-1. Install [tweakcc](https://github.com/Piebald-AI/tweakcc).
-2. Run tweakcc once against your Claude Code install. This creates `~/.tweakcc/system-prompts/` with stock extractions.
-3. Clone this repo.
-4. Copy the `.md` files from this repo's `system-prompts/` directory over the ones in `~/.tweakcc/system-prompts/`, overwriting. **Do NOT overwrite `~/.tweakcc/systemPromptOriginalHashes.json` or any other tweakcc state files** — only overwrite the `.md` files.
-5. Run tweakcc's apply command. It will detect the changed hashes, re-patch the Claude Code binary, and record the new applied hashes.
+Use the [**`tweakcc-fixed`**](https://github.com/BenIsLegit/tweakcc-fixed) fork for now — see [Which tweakcc fork to use](#which-tweakcc-fork-to-use-while-upstream-catches-up) for why. No global install required; `npx` fetches a fresh copy each run.
+
+1. Clone this repo.
+2. **If `~/.tweakcc/system-prompts/` already exists and contains anything** (from a prior tweakcc run, or any hand-edits), clear it first:
+   - Unix: `rm -rf ~/.tweakcc/system-prompts`
+   - Windows PowerShell: `Remove-Item -Recurse -Force "$HOME\.tweakcc\system-prompts"`
+
+   Leave the rest of `~/.tweakcc/` alone — state files (`config.json`, `systemPromptOriginalHashes.json`, `native-binary.backup`) must survive. This step matters because tweakcc does **not** overwrite user-edited `.md` files on re-extract — it writes an HTML diff file next to each conflicted prompt and leaves the original `.md` in place. Wiping the directory first guarantees a clean fresh-stock extraction with no diff HTMLs.
+3. Run `npx tweakcc-fixed@latest` once against your Claude Code install. It extracts a fresh stock copy of every prompt into `~/.tweakcc/system-prompts/`.
+4. Copy the `.md` files from this repo's `system-prompts/` directory over the ones in `~/.tweakcc/system-prompts/`, overwriting. **Do NOT overwrite `~/.tweakcc/systemPromptOriginalHashes.json` or any other tweakcc state files** — only the `.md` files.
+5. Run `npx tweakcc-fixed@latest --apply` (or the interactive "Apply customizations" action). It will detect the changed hashes, re-patch the Claude Code binary, and record the new applied hashes.
 6. Restart any running Claude Code sessions.
 
 Example Unix-ish copy (adapt paths for your OS):
 
 ```
 git clone <this-repo-url> ~/src/tweakcc-system-prompts-github
+rm -rf ~/.tweakcc/system-prompts
+npx tweakcc-fixed@latest                                                           # fresh stock extract
 cp -r ~/src/tweakcc-system-prompts-github/system-prompts/*.md ~/.tweakcc/system-prompts/
-# then run tweakcc's apply action
+npx tweakcc-fixed@latest --apply                                                   # patch the CC binary
 ```
 
 **Option B — read-only reference:**
@@ -300,11 +325,13 @@ Most prompts stand alone. If you only want the un-nerfed [`system-prompt-communi
 
 ## Maintenance: re-applying un-nerfs after a Claude Code version bump
 
-Every Claude Code release can rewrite, add, remove, or subtly shift the wording of any system prompt. When you re-run tweakcc against a newer binary, it will overwrite every `.md` file whose bytecode hash changed upstream — so un-nerfed content gets reverted to fresh stock text on disk. To restore the un-nerfed state, run:
+Every Claude Code release can rewrite, add, remove, or subtly shift the wording of any system prompt. Because tweakcc does **not** overwrite user-edited `.md` files on re-extract (it writes an HTML diff alongside each conflicted file and leaves the original alone), the maintenance workflow uses this repo as the git-tracked source of truth: wipe `~/.tweakcc/system-prompts/` for a clean stock extract, copy that into this repo, replay every un-nerf against the fresh stock with:
 
 ```
 python scripts/apply-unnerfs.py
 ```
+
+then copy the result back. Full step-by-step below under [Standard workflow after a Claude Code bump](#standard-workflow-after-a-claude-code-bump).
 
 The script is stdlib-only (no pip install), idempotent, and safe to run repeatedly. It also normalizes any accidental CRLF line endings back to LF.
 
@@ -332,18 +359,29 @@ The script is stdlib-only (no pip install), idempotent, and safe to run repeated
 
 ### Standard workflow after a Claude Code bump
 
-1. Update Claude Code (the normal way — installer, npm upgrade, whatever).
-2. Run tweakcc. It will detect that prompt hashes changed and overwrite the `.md` files in `~/.tweakcc/system-prompts/` with the new stock extractions for whatever prompts moved.
-3. (If you're using this public mirror) copy those re-extracted `.md` files into this repo's `system-prompts/` tree, or just work directly in `~/.tweakcc/system-prompts/`.
-4. Run `python scripts/apply-unnerfs.py`. Read the report.
-5. Address any `FAIL` entries:
-   - Open the named file, locate the passage the rule targets (use the quoted stock text from the report as a search term for the pre-drift version — you may need to search for a partial phrase).
-   - Compare the new stock wording against the old stock wording and against the un-nerf. Usually the drift is cosmetic (a reworded sentence) and the un-nerf still applies after updating `stock` in the rule to match the new wording.
+> **Why the dance with `~/.tweakcc/system-prompts/` instead of just re-running tweakcc in place:** tweakcc does **not** overwrite user-edited `.md` files on re-extract. When it detects that a prompt has changed upstream but the local `.md` has been hand-edited — which is true for every un-nerfed file in this repo — it writes an HTML diff file alongside the `.md` and leaves the original untouched. That's a reasonable default for a tool with no separate source-of-truth, but since **this repo is the git-tracked source of truth** for the un-nerfed content, the cleanest flow is: wipe the tweakcc working directory so it has no user edits to protect, let tweakcc emit a fresh clean stock extract, copy that stock into this repo (overwriting the tree here — `git diff` then shows exactly what Anthropic changed upstream), run the re-apply script **here** against the fresh stock, resolve any `FAIL`s via normal git-reviewable edits, commit, and finally copy the fully un-nerfed tree back to `~/.tweakcc/system-prompts/` for tweakcc to compile into the binary.
+
+> Substitute `npx tweakcc-fixed@latest` for `tweakcc` below while upstream catches up — see [Which tweakcc fork to use](#which-tweakcc-fork-to-use-while-upstream-catches-up).
+
+1. **Update Claude Code** the normal way (installer, npm upgrade, whatever).
+2. **Clear `~/.tweakcc/system-prompts/`.**
+   - Unix: `rm -rf ~/.tweakcc/system-prompts`
+   - Windows PowerShell: `Remove-Item -Recurse -Force "$HOME\.tweakcc\system-prompts"`
+
+   Leave the rest of `~/.tweakcc/` alone — `config.json`, `systemPromptOriginalHashes.json`, `systemPromptAppliedHashes.json`, and `native-binary.backup` must survive. Wiping just the `system-prompts/` subdirectory is what lets tweakcc do a conflict-free re-extract.
+3. **Re-extract with tweakcc.** `npx tweakcc-fixed@latest` (or stock `tweakcc` once upstream is caught up). tweakcc sees the missing `system-prompts/` directory, reads the new CC binary, and writes fresh stock `.md` files — no diff HTMLs emitted, because there are no user edits to conflict with.
+4. **Copy the fresh stock into this repo, overwriting.** From the repo root: `cp ~/.tweakcc/system-prompts/*.md system-prompts/`. Do *not* commit yet — `git diff` at this point shows exactly which prompts moved upstream, by how much, and whether any un-nerfed passages got re-worded. That's useful context for the next step.
+5. **Run the re-apply script.** `python scripts/apply-unnerfs.py`. Read the report.
+6. **Address any `FAIL` entries:**
+   - Open the named file, locate the passage the rule targets (use the quoted stock text from the report as a search term — you may need to search for a partial phrase if drift is significant).
+   - Compare the new stock wording against the old stock wording and against the un-nerf. Usually the drift is cosmetic (a reworded sentence) and the un-nerf still applies after updating `stock` in the rule to match the new wording byte-exactly.
    - In rare cases upstream may have removed the passage entirely or changed it structurally enough that the un-nerf no longer applies. Delete the rule in that case and note the removal in the commit message.
-   - Re-run the script to confirm everything is APPLIED or SKIPPED.
-6. (Optional but recommended) Also scan for any *new* prompts Anthropic added in this release — files you've never seen before. For each new prompt, decide whether it introduces a brevity nerf that fits this repo's thesis and add a rule if so. Some new prompts (e.g. structured JSON generators with UX-driven word caps) should be left stock; use the bucket taxonomy from [The un-nerf thesis](#the-un-nerf-thesis) to decide.
-7. Run tweakcc's apply/compile step so the patched binary picks up the new `.md` content.
-8. Commit the updated `.md` files and the updated rules together.
+   - Re-run the script until it prints only APPLIED / SKIPPED / NORMALIZED — no FAILs.
+7. **Scan for *new* prompts** Anthropic added in this release. They show up as untracked `.md` files in `git status`. For each new prompt, decide whether it introduces a brevity nerf that fits this repo's thesis and add a rule if so. Some new prompts (e.g. structured JSON generators with UX-driven word caps) should be left stock; use the bucket taxonomy from [The un-nerf thesis](#the-un-nerf-thesis) to decide.
+8. **Commit** the updated `.md` files and the updated `scripts/apply-unnerfs.py` rules together, while the diff is still small and the context is fresh.
+9. **Copy the un-nerfed tree back out** to `~/.tweakcc/system-prompts/`. From the repo root: `cp system-prompts/*.md ~/.tweakcc/system-prompts/`. This is the copy tweakcc will actually bake into the patched binary.
+10. **Run tweakcc's apply step** so the patched binary picks up the new `.md` content: `npx tweakcc-fixed@latest --apply` (or the interactive "Apply customizations" action).
+11. **Restart any running Claude Code sessions** and verify a representative un-nerfed prompt (e.g. the communication-style one) actually made it into the running binary by triggering the relevant behavior.
 
 ### Adding a new un-nerf
 
