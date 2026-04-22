@@ -4,6 +4,8 @@ A public, downloadable set of modified [Claude Code](https://docs.claude.com/en/
 
 These are the actual files I use daily on my own machine. This repository is the publicly shared mirror of `~/.tweakcc/system-prompts/` — the working directory that [tweakcc](https://github.com/Piebald-AI/tweakcc) extracts Claude Code's system prompts into so I can edit them. Nothing is reconstructed or cleaned up for public consumption; this is the live set, including all of my in-progress un-nerfs.
 
+**Currently aligned with: Claude Code v2.1.116.** When Anthropic ships a newer Claude Code release, tweakcc's re-extract will wipe every un-nerfed prompt back to fresh stock — run [`python scripts/apply-unnerfs.py`](./scripts/apply-unnerfs.py) to put them back idempotently, then read the script's per-file report to see which rules (if any) need updating for upstream drift. Full workflow documented in [Maintenance](#maintenance-re-applying-un-nerfs-after-a-claude-code-version-bump).
+
 ---
 
 ## Table of contents
@@ -20,6 +22,7 @@ These are the actual files I use daily on my own machine. This repository is the
 - [File categories](#file-categories)
 - [Compatibility notes](#compatibility-notes)
 - [How to use these prompts yourself](#how-to-use-these-prompts-yourself)
+- [Maintenance: re-applying un-nerfs after a Claude Code version bump](#maintenance-re-applying-un-nerfs-after-a-claude-code-version-bump)
 - [Credits](#credits)
 - [License / disclaimer](#license--disclaimer)
 
@@ -27,14 +30,15 @@ These are the actual files I use daily on my own machine. This repository is the
 
 ## What this repo is
 
-- **271 markdown files** that Claude Code loads as system prompts, agent prompts, skill bodies, tool descriptions, and reference data blobs.
-- Each file has YAML-in-HTML-comment frontmatter giving it a human-readable name, a one-line description, and the Claude Code version the prompt was extracted from (e.g. `ccVersion: 2.1.113`).
+- **272 markdown files** that Claude Code loads as system prompts, agent prompts, skill bodies, tool descriptions, and reference data blobs. The count tracks upstream — when Anthropic adds or removes prompts in a Claude Code release, this number changes to match.
+- Each file has YAML-in-HTML-comment frontmatter giving it a human-readable name, a one-line description, and the Claude Code version the prompt was extracted from (e.g. `ccVersion: 2.1.116`).
 - The body of each file is the literal prompt text that Claude Code assembles and sends to the model.
 - Every file on disk is either:
-  - a **stock v2.1.113 extraction** from tweakcc, unchanged; or
+  - a **stock extraction** from tweakcc (unchanged upstream text, at whatever ccVersion the prompt was last touched upstream); or
   - a **modified version** where I have edited the prompt to flip a "be brief / be minimal / be concise" directive into "be thorough / be complete / use the space the work warrants."
+- **A re-apply script** at [`scripts/apply-unnerfs.py`](./scripts/apply-unnerfs.py) restores every un-nerf idempotently. It reads the current state of `system-prompts/`, runs each rule against the matching file, and prints a structured per-file report showing what applied, what was already un-nerfed (skipped), what failed (with a diff-friendly explanation), and which files had their line endings normalized. Running the script is the supported way to bring a fresh tweakcc extraction (e.g. after an upstream bump) back to the un-nerfed state.
 
-This is a *snapshot* of a working directory, not a curated patch set. The README and the file contents together are the documentation of what was changed and why.
+This is a *snapshot* of a working directory, not a curated patch set. The README, the script's rule definitions, and the file contents together are the documentation of what was changed and why.
 
 ---
 
@@ -123,6 +127,7 @@ Those six files are the gist's ideas, ported to tweakcc-compatible markdown.
 - Auto-mode rule reviewer and sandbox-restriction explainer produce thorough critiques and full restriction context.
 - Unleashed subagent usage — removed caps like "use the minimum number of subagents," "not excessively," and "do not spawn subagents unless clearly necessary." Liberal parallel subagent use is explicitly encouraged.
 - Final lint / whitespace pass.
+- **Re-apply script added** ([`scripts/apply-unnerfs.py`](./scripts/apply-unnerfs.py)) so that tweakcc re-extracts against newer Claude Code binaries no longer require hand-reverting every un-nerfed file. The script stores each un-nerf as a `(stock_text, unnerf_text, description)` rule, applies them idempotently against the current working copy, and prints a structured report showing exactly which rules applied, which were already in place, and — critically — which ones failed to match because upstream text drifted. See the [Maintenance](#maintenance-re-applying-un-nerfs-after-a-claude-code-version-bump) section for the full workflow.
 
 ---
 
@@ -135,6 +140,8 @@ This is how the contents of this GitHub repo were produced from the two sources 
 3. **Iterative un-nerf edits.** Over the next set of edits I extended the thesis. Whenever I caught Claude Code being reflexively terse in a way that hurt the output (e.g., "here's the fix, no explanation"), I traced the behavior to the prompt that caused it, edited that prompt, and committed. That produced the stack of un-nerfs summarized above under [Source 2](#source-2-my-local-system-prompts-repo).
 4. **Mirror copy to this public repo.** I copied the entire `.md` set from `~/.tweakcc/system-prompts/` into `~/.tweakcc/system-prompts-github/system-prompts/`, preserving the filenames and structure tweakcc uses. That is what you're browsing right now.
 5. **Git init + this README.** Initialized `system-prompts-github` as a fresh git repo (the public mirror has its own history separate from the private working repo) and wrote this README to document the import.
+
+The repo is then kept in sync with newer Claude Code releases via [`scripts/apply-unnerfs.py`](./scripts/apply-unnerfs.py); see [Maintenance](#maintenance-re-applying-un-nerfs-after-a-claude-code-version-bump) for the ongoing workflow.
 
 **What this repo deliberately does NOT include:**
 
@@ -170,7 +177,7 @@ That's it. Every edit in this repo fits that rule. I am not trying to make Claud
 
 ## Concrete before/after examples
 
-These show the literal text change between the stock v2.1.113 prompt and the current un-nerfed version on disk.
+These show the literal text change between the upstream stock prompt and the current un-nerfed version on disk.
 
 ### Example 1 — `system-prompt-tone-concise-output-short.md`
 
@@ -222,12 +229,12 @@ This is one of the highest-leverage un-nerfs. The system reminder that gets inje
 system-prompts-github/
 ├── README.md                    <- this file
 ├── .git/                        <- public-mirror git history
-└── system-prompts/              <- 271 markdown files, mirror of ~/.tweakcc/system-prompts/
+└── system-prompts/              <- 272 markdown files, mirror of ~/.tweakcc/system-prompts/
     ├── agent-auto-mode-rule-reviewer.md
     ├── agent-prompt-*.md        <- subagent / auto-agent system prompts (37 files)
     ├── data-*.md                <- reference data blobs: API refs, model catalog, etc. (33 files)
     ├── skill-*.md               <- user-facing skill bodies (27 files)
-    ├── system-prompt-*.md       <- core system prompts (most of the 97 in this bucket)
+    ├── system-prompt-*.md       <- core system prompts (most of the 98 in this bucket)
     ├── system-reminder-*.md     <- system-reminder templates injected into user messages
     ├── tool-description-*.md    <- descriptions shown to the model for each built-in tool (77 files)
     └── tool-parameter-*.md      <- parameter-level descriptions for tool inputs
@@ -243,19 +250,19 @@ Counted by filename prefix:
 
 | Prefix | Count | What these are |
 |---|---|---|
-| `system-prompt-*` / `system-reminder-*` | **97** | The main set — core behavioral instructions, tone, task-execution guidance, system reminders injected into messages. Most of the un-nerfs target files in this bucket. |
+| `system-prompt-*` / `system-reminder-*` | **98** | The main set — core behavioral instructions, tone, task-execution guidance, system reminders injected into messages. Most of the un-nerfs target files in this bucket. |
 | `tool-description-*` / `tool-parameter-*` | **77** | The `description` and parameter-level copy shown to the model for each built-in tool (Read, Write, Edit, Bash, Grep, Glob, Agent, WebFetch, WebSearch, TaskCreate, etc.). These shape how the model decides *when* to use which tool. Mostly left stock; a few tweaks around tool-usage prompts. |
 | `agent-prompt-*` / `agent-auto-*` | **37** | Full subagent system prompts — explore, general-purpose, plan, code-reviewer, security-review, onboarding, dream-memory, and many more. Heavy un-nerf territory because subagents are where over-brevity is worst (the caller can't see into a subagent's thinking, so if it under-reports the user never knows). |
 | `data-*` | **33** | Reference data embedded in prompts — Anthropic API reference (per language), model catalog, HTTP error codes, live documentation sources, managed-agents docs. Mostly stock — these are facts, not behavior. |
 | `skill-*` | **27** | User-facing skill bodies (e.g., `skill-simplify.md`, `skill-debugging.md`, `skill-init-claude-md-and-skill-setup-new-version.md`). Mixed — some un-nerfed, some stock. |
 
-**Total: 271 files.** Every file is ≤ 33 KB, plain markdown. You can open and read any of them without any tooling.
+**Total: 272 files.** Every file is ≤ 33 KB, plain markdown. You can open and read any of them without any tooling.
 
 ---
 
 ## Compatibility notes
 
-- **Claude Code version.** These files were extracted from Claude Code v2.1.113. Many of the prompts carry their own `ccVersion:` frontmatter; some are as old as v2.1.53, some as new as v2.1.107. When Anthropic ships a new Claude Code version, prompts may be added, removed, or re-worded upstream. Re-running tweakcc against the new version will re-extract fresh stock copies and you'll have to re-apply (or revisit) the un-nerfs. `systemPromptOriginalHashes.json` is how tweakcc knows which prompts are unchanged vs. modified.
+- **Claude Code version.** These files are aligned with Claude Code v2.1.116. Individual prompts carry their own `ccVersion:` frontmatter ranging from v2.0.14 (oldest surviving prompt) to the current release. When Anthropic ships a newer Claude Code, prompts may be added, removed, or re-worded upstream. Re-running tweakcc against the new version will re-extract fresh stock copies. Then run [`python scripts/apply-unnerfs.py`](./scripts/apply-unnerfs.py) to idempotently re-apply every un-nerf; the script prints a per-file report telling you exactly which rules need updating if upstream text has drifted. `systemPromptOriginalHashes.json` is how tweakcc knows which prompts are unchanged vs. modified on a given binary; the script doesn't use those hashes directly — it works purely on stock-text-in-file detection.
 - **Model family.** These prompts are tuned for current Claude models (Opus 4.7 / Sonnet 4.6 / Haiku 4.5 as of January 2026). Older models may follow the un-nerfed prompts differently — in particular, the "think more, verbose is fine, use space the work warrants" directives may cause older/smaller models to over-explain even simple responses. Test on your own workload.
 - **Risk of over-verbosity.** This is the main failure mode to watch for. If you apply all of these and suddenly Claude Code is giving you a 15-paragraph essay in response to "what time is it?", that's because the un-nerfed communication prompt is instructing it to be thorough. The [un-nerf thesis](#the-un-nerf-thesis) tried to preserve chat brevity for simple requests, but there's always going to be some spillover. If you see this, the first place to look is `system-prompt-communication-style.md` and `system-prompt-tone-concise-output-short.md`.
 - **Token cost.** Thorough output uses more tokens than brief output. Plan accordingly.
@@ -288,6 +295,104 @@ You don't have to apply these to use this repo. If you're building your own prom
 **Option C — cherry-pick:**
 
 Most prompts stand alone. If you only want the un-nerfed [`system-prompt-communication-style.md`](./system-prompts/system-prompt-communication-style.md) and nothing else, just copy that one file. Each file's frontmatter tells you what it governs, and the body is self-contained.
+
+---
+
+## Maintenance: re-applying un-nerfs after a Claude Code version bump
+
+Every Claude Code release can rewrite, add, remove, or subtly shift the wording of any system prompt. When you re-run tweakcc against a newer binary, it will overwrite every `.md` file whose bytecode hash changed upstream — so un-nerfed content gets reverted to fresh stock text on disk. To restore the un-nerfed state, run:
+
+```
+python scripts/apply-unnerfs.py
+```
+
+The script is stdlib-only (no pip install), idempotent, and safe to run repeatedly. It also normalizes any accidental CRLF line endings back to LF.
+
+### What the script does
+
+- Reads every `.md` file under `./system-prompts/` (override with `--dir PATH`).
+- For each file listed in its `RULES` table, applies a series of string replacements of the form `stock_text → unnerf_text`. Each rule is typically one paragraph's worth of un-nerf, so a single file may have multiple rules.
+- For every rule, one of four things happens:
+  - **APPLIED** — the stock text was found in the file and replaced with un-nerfed text. The file is rewritten to disk as UTF-8 LF.
+  - **SKIPPED** — the un-nerfed text is already in the file (nothing to do; the run is idempotent).
+  - **NORMALIZED** — no rule content change was needed, but the file had CRLF line endings and was rewritten as LF.
+  - **FAIL** — neither stock nor un-nerfed text was found. This means upstream drifted — the expected passage has been reworded by Anthropic. The report quotes the first 200 characters of both the expected stock text and the intended un-nerf text so you can search the file and update the rule.
+- Prints a per-file report and a summary block with counts + exit code.
+
+### Useful flags
+
+| Flag | What it does |
+|---|---|
+| (none) | Apply all rules to `./system-prompts/`. Writes files on disk. |
+| `--dry-run` | Report what would change without writing any files. |
+| `--check` | Like `--dry-run`, but exits with code 1 if **any** rule would apply or fail. Useful in CI/pre-commit to assert the working copy is already un-nerfed. |
+| `--only FILE` | Restrict processing to a single filename (no path — just e.g. `system-prompt-communication-style.md`). Handy when iterating on one rule. |
+| `--verbose` | Include context on SKIPPED entries too (otherwise they're shown but not explained). |
+| `--dir PATH` | Process a prompts directory other than `./system-prompts/`. |
+
+### Standard workflow after a Claude Code bump
+
+1. Update Claude Code (the normal way — installer, npm upgrade, whatever).
+2. Run tweakcc. It will detect that prompt hashes changed and overwrite the `.md` files in `~/.tweakcc/system-prompts/` with the new stock extractions for whatever prompts moved.
+3. (If you're using this public mirror) copy those re-extracted `.md` files into this repo's `system-prompts/` tree, or just work directly in `~/.tweakcc/system-prompts/`.
+4. Run `python scripts/apply-unnerfs.py`. Read the report.
+5. Address any `FAIL` entries:
+   - Open the named file, locate the passage the rule targets (use the quoted stock text from the report as a search term for the pre-drift version — you may need to search for a partial phrase).
+   - Compare the new stock wording against the old stock wording and against the un-nerf. Usually the drift is cosmetic (a reworded sentence) and the un-nerf still applies after updating `stock` in the rule to match the new wording.
+   - In rare cases upstream may have removed the passage entirely or changed it structurally enough that the un-nerf no longer applies. Delete the rule in that case and note the removal in the commit message.
+   - Re-run the script to confirm everything is APPLIED or SKIPPED.
+6. (Optional but recommended) Also scan for any *new* prompts Anthropic added in this release — files you've never seen before. For each new prompt, decide whether it introduces a brevity nerf that fits this repo's thesis and add a rule if so. Some new prompts (e.g. structured JSON generators with UX-driven word caps) should be left stock; use the bucket taxonomy from [The un-nerf thesis](#the-un-nerf-thesis) to decide.
+7. Run tweakcc's apply/compile step so the patched binary picks up the new `.md` content.
+8. Commit the updated `.md` files and the updated rules together.
+
+### Adding a new un-nerf
+
+1. Identify the passage you want to flip. Read the relevant `.md` file.
+2. Open [`scripts/apply-unnerfs.py`](./scripts/apply-unnerfs.py) and add a new `Rule(stock=..., unnerf=..., description=...)` entry under the matching filename key in the `RULES` dict (create the key if the file is brand new).
+   - `stock` must be exactly what's in the file right now (the un-nerfed-ish default). Byte-exact, including any trailing whitespace or unusual punctuation — template literals like `${VAR}` and backticks go in verbatim.
+   - `unnerf` is the replacement. Write it in the same thorough-over-brief voice as the rest of the repo.
+   - `description` is a short scannable label (e.g. `"tone body: flip 'short and concise' to 'thorough, clear, rich'"`).
+3. Run `python scripts/apply-unnerfs.py --dry-run --only <filename>` to preview.
+4. Run without `--dry-run` once you're happy with the preview.
+5. Verify with `git diff` that the only change to the file is the replacement you expected.
+6. Run `python scripts/apply-unnerfs.py --check` to confirm the rule is fully idempotent.
+7. Commit the script change and the un-nerfed `.md` together.
+
+### When a rule fails (understanding the report)
+
+A `FAIL` entry in the report looks like:
+
+```
+system-prompts/some-file.md
+  [FAIL    ] <rule description>
+             Expected stock text (first 200 chars):
+               'Briefly explain what ...'
+             Expected un-nerf text (first 200 chars, for reference):
+               'Explain thoroughly what ...'
+             Neither was found in the file.
+             Action: open C:\...\some-file.md and locate the passage the rule targets.
+             If upstream text drifted, update the rule's `stock` field in
+             scripts/apply-unnerfs.py to match the new upstream wording.
+```
+
+This format is deliberately structured so that Claude (or a future-you) reading the report can act on it without re-deriving what the rule was supposed to do. The two quoted excerpts tell you both what you're looking for (the pre-drift stock) and what the result should be after un-nerfing (the target unnerf); the file path tells you exactly where to go.
+
+The three most common causes of a FAIL:
+
+- **Upstream drifted the stock wording.** Anthropic reworded the passage in a new Claude Code release. Open the file, find the new wording of the same passage, and update `stock` in the rule to match it byte-exactly. The `unnerf` usually doesn't need changing unless the new upstream phrasing is structurally different.
+- **Upstream removed the passage.** The nerfed directive got deleted from the prompt entirely. Delete the rule (it's no longer relevant) and note this in your commit message.
+- **Upstream replaced the passage with something that was never nerfed in the first place** (e.g., the brevity directive got replaced with a neutral or pro-thoroughness one). Delete the rule — the un-nerf isn't needed anymore.
+
+### CI / pre-commit integration (optional)
+
+Because `--check` exits 1 when anything would change, you can wire the script into a pre-commit hook to assert the working copy is fully un-nerfed before each commit:
+
+```
+python scripts/apply-unnerfs.py --check || {
+  echo "Un-nerfs are not fully applied. Run: python scripts/apply-unnerfs.py"
+  exit 1
+}
+```
 
 ---
 
