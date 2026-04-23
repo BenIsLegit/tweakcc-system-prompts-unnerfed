@@ -4,7 +4,7 @@ A public, downloadable set of modified [Claude Code](https://docs.claude.com/en/
 
 These are the actual files I use daily on my own machine. This repository is the publicly shared mirror of `~/.tweakcc/system-prompts/` — the working directory that [tweakcc](https://github.com/Piebald-AI/tweakcc) extracts Claude Code's system prompts into so I can edit them. Nothing is reconstructed or cleaned up for public consumption; this is the live set, including all of my in-progress un-nerfs.
 
-**Currently aligned with: Claude Code v2.1.116.** Upstream [tweakcc](https://github.com/Piebald-AI/tweakcc) has not yet been updated for Claude Code releases newer than v2.1.113 — until it catches up, use the [**`tweakcc-fixed`**](https://github.com/BenIsLegit/tweakcc-fixed) fork (`npx tweakcc-fixed@latest`), which bundles the required upstream PRs plus several additional fixes. See [Which tweakcc fork to use](#which-tweakcc-fork-to-use-while-upstream-catches-up) below for details.
+**Currently aligned with: Claude Code v2.1.118.** Upstream [tweakcc](https://github.com/Piebald-AI/tweakcc) has not yet been updated for Claude Code releases newer than v2.1.113 — until it catches up, use the [**`tweakcc-fixed`**](https://github.com/BenIsLegit/tweakcc-fixed) fork (`npx tweakcc-fixed@latest`), which bundles the required upstream PRs plus several additional fixes. See [Which tweakcc fork to use](#which-tweakcc-fork-to-use-while-upstream-catches-up) below for details.
 
 When Anthropic ships a newer Claude Code release, the supported re-patch flow is: **clear** `~/.tweakcc/system-prompts/`, **re-run tweakcc** to regenerate fresh stock `.md` files, **copy them into this repo's `system-prompts/`** (overwriting), **run [`python scripts/apply-unnerfs.py`](./scripts/apply-unnerfs.py)** to re-apply every un-nerf idempotently, **resolve any `FAIL`s** against drifted upstream wording (normal git-reviewable edits here), then **copy the un-nerfed result back to `~/.tweakcc/system-prompts/`** and run tweakcc's apply step. This wipe-then-regen path is required because tweakcc does **not** overwrite user-edited `.md` files — on conflict it writes an HTML diff file next to each changed prompt and leaves the `.md` alone, which would otherwise leave your working directory in a half-upgraded state. Full workflow documented in [Maintenance](#maintenance-re-applying-un-nerfs-after-a-claude-code-version-bump).
 
@@ -32,8 +32,8 @@ When Anthropic ships a newer Claude Code release, the supported re-patch flow is
 
 ## What this repo is
 
-- **272 markdown files** that Claude Code loads as system prompts, agent prompts, skill bodies, tool descriptions, and reference data blobs. The count tracks upstream — when Anthropic adds or removes prompts in a Claude Code release, this number changes to match.
-- Each file has YAML-in-HTML-comment frontmatter giving it a human-readable name, a one-line description, and the Claude Code version the prompt was extracted from (e.g. `ccVersion: 2.1.116`).
+- **273 markdown files** that Claude Code loads as system prompts, agent prompts, skill bodies, tool descriptions, and reference data blobs. The count tracks upstream — when Anthropic adds or removes prompts in a Claude Code release, this number changes to match.
+- Each file has YAML-in-HTML-comment frontmatter giving it a human-readable name, a one-line description, and the Claude Code version the prompt was extracted from (e.g. `ccVersion: 2.1.118`).
 - The body of each file is the literal prompt text that Claude Code assembles and sends to the model.
 - Every file on disk is either:
   - a **stock extraction** from tweakcc (unchanged upstream text, at whatever ccVersion the prompt was last touched upstream); or
@@ -68,7 +68,7 @@ tweakcc is the modern equivalent: same philosophy (edit the prompts), different 
 
 Upstream [Piebald-AI/tweakcc](https://github.com/Piebald-AI/tweakcc) (last published release `4.0.11`, based on commit `2e1d03e` — _Prompts for 2.1.113_) has **not** yet been updated for Claude Code releases newer than v2.1.113. Running stock upstream tweakcc against a v2.1.114+ binary fails at apply time because several patch regexes don't match the new minified shapes, and a few long-open upstream PRs that are required for the tool to function on recent CC builds haven't merged yet.
 
-Until upstream catches up, use the [**BenIsLegit/tweakcc-fixed**](https://github.com/BenIsLegit/tweakcc-fixed) fork, published to npm as [`tweakcc-fixed`](https://www.npmjs.com/package/tweakcc-fixed). It bundles the required upstream PRs (#601 WASMagic import guard, #646 React Compiler output support, #655 Bun bytecode fallback + `clearBytecode`, #664 `\"` handling) plus additional fixes on top (scoped backslash-doubling, `verbose:X` destructure guard, adapted 2.1.113 minified-shape regexes, and a pile of `userMessageDisplay` fixes for theme bg, padding, wrapped-line bg, and the long-paste `[object Object]` bug). The fork targets Claude Code up to and including **2.1.116**.
+Until upstream catches up, use the [**BenIsLegit/tweakcc-fixed**](https://github.com/BenIsLegit/tweakcc-fixed) fork, published to npm as [`tweakcc-fixed`](https://www.npmjs.com/package/tweakcc-fixed). It bundles the required upstream PRs (#601 WASMagic import guard, #646 React Compiler output support, #655 Bun bytecode fallback + `clearBytecode`, #664 `\"` handling) plus additional fixes on top (scoped backslash-doubling, `verbose:X` destructure guard, adapted 2.1.113 minified-shape regexes, and a pile of `userMessageDisplay` fixes for theme bg, padding, wrapped-line bg, and the long-paste `[object Object]` bug). The fork targets Claude Code up to and including **2.1.118**.
 
 Install via npx — always with `@latest` because the fork iterates frequently as new CC versions ship:
 
@@ -246,7 +246,7 @@ This is one of the highest-leverage un-nerfs. The system reminder that gets inje
 system-prompts-github/
 ├── README.md                    <- this file
 ├── .git/                        <- public-mirror git history
-└── system-prompts/              <- 272 markdown files, mirror of ~/.tweakcc/system-prompts/
+└── system-prompts/              <- 273 markdown files, mirror of ~/.tweakcc/system-prompts/
     ├── agent-auto-mode-rule-reviewer.md
     ├── agent-prompt-*.md        <- subagent / auto-agent system prompts (37 files)
     ├── data-*.md                <- reference data blobs: API refs, model catalog, etc. (33 files)
@@ -273,13 +273,13 @@ Counted by filename prefix:
 | `data-*` | **33** | Reference data embedded in prompts — Anthropic API reference (per language), model catalog, HTTP error codes, live documentation sources, managed-agents docs. Mostly stock — these are facts, not behavior. |
 | `skill-*` | **27** | User-facing skill bodies (e.g., `skill-simplify.md`, `skill-debugging.md`, `skill-init-claude-md-and-skill-setup-new-version.md`). Mixed — some un-nerfed, some stock. |
 
-**Total: 272 files.** Every file is ≤ 33 KB, plain markdown. You can open and read any of them without any tooling.
+**Total: 273 files.** Every file is ≤ 33 KB, plain markdown. You can open and read any of them without any tooling.
 
 ---
 
 ## Compatibility notes
 
-- **Claude Code version.** These files are aligned with Claude Code v2.1.116. Individual prompts carry their own `ccVersion:` frontmatter ranging from v2.0.14 (oldest surviving prompt) to the current release. When Anthropic ships a newer Claude Code, prompts may be added, removed, or re-worded upstream. Getting a clean re-extract requires **clearing** `~/.tweakcc/system-prompts/` first — tweakcc does not overwrite user-edited files, it writes an HTML diff alongside each conflicted prompt, which is why the maintenance workflow wipes the directory before re-running tweakcc. After the clean re-extract, copy the fresh stock into this repo and run [`python scripts/apply-unnerfs.py`](./scripts/apply-unnerfs.py) here to idempotently re-apply every un-nerf; the script prints a per-file report telling you exactly which rules need updating if upstream text has drifted. `systemPromptOriginalHashes.json` is how tweakcc knows which prompts are unchanged vs. modified on a given binary; the script doesn't use those hashes directly — it works purely on stock-text-in-file detection.
+- **Claude Code version.** These files are aligned with Claude Code v2.1.118. Individual prompts carry their own `ccVersion:` frontmatter ranging from v2.0.14 (oldest surviving prompt) to the current release. When Anthropic ships a newer Claude Code, prompts may be added, removed, or re-worded upstream. Getting a clean re-extract requires **clearing** `~/.tweakcc/system-prompts/` first — tweakcc does not overwrite user-edited files, it writes an HTML diff alongside each conflicted prompt, which is why the maintenance workflow wipes the directory before re-running tweakcc. After the clean re-extract, copy the fresh stock into this repo and run [`python scripts/apply-unnerfs.py`](./scripts/apply-unnerfs.py) here to idempotently re-apply every un-nerf; the script prints a per-file report telling you exactly which rules need updating if upstream text has drifted. `systemPromptOriginalHashes.json` is how tweakcc knows which prompts are unchanged vs. modified on a given binary; the script doesn't use those hashes directly — it works purely on stock-text-in-file detection.
 - **Model family.** These prompts are tuned for current Claude models (Opus 4.7 / Sonnet 4.6 / Haiku 4.5 as of January 2026). Older models may follow the un-nerfed prompts differently — in particular, the "think more, verbose is fine, use space the work warrants" directives may cause older/smaller models to over-explain even simple responses. Test on your own workload.
 - **Risk of over-verbosity.** This is the main failure mode to watch for. If you apply all of these and suddenly Claude Code is giving you a 15-paragraph essay in response to "what time is it?", that's because the un-nerfed communication prompt is instructing it to be thorough. The [un-nerf thesis](#the-un-nerf-thesis) tried to preserve chat brevity for simple requests, but there's always going to be some spillover. If you see this, the first place to look is `system-prompt-communication-style.md` and `system-prompt-tone-concise-output-short.md`.
 - **Token cost.** Thorough output uses more tokens than brief output. Plan accordingly.
