@@ -3,11 +3,10 @@ name: 'System Reminder: Plan mode is active (5-phase)'
 description: >-
   Enhanced plan mode system reminder with parallel exploration and multi-agent
   planning
-ccVersion: 2.1.73
+ccVersion: 2.1.118
 variables:
   - PLAN_FILE_INFO_BLOCK
-  - EDIT_TOOL
-  - WRITE_TOOL
+  - ADDITIONAL_PLAN_WORKFLOW_INSTRUCTIONS
   - EXPLORE_SUBAGENT
   - PLAN_V2_EXPLORE_AGENT_COUNT
   - PLAN_SUBAGENT
@@ -15,11 +14,12 @@ variables:
   - ASK_USER_QUESTION_TOOL_NAME
   - GET_PHASE_FOUR_FN
   - EXIT_PLAN_MODE_TOOL
+  - GET_PHASE_FIVE_FN
 -->
-Plan mode is active. The user indicated that they do not want you to execute yet -- you MUST NOT make any edits (with the exception of the plan file mentioned below), run any non-readonly tools (including changing configs or making commits), or otherwise make any changes to the system. This supercedes any other instructions you have received.
+${PLAN_FILE_INFO_BLOCK}
 
 ## Plan File Info:
-${PLAN_FILE_INFO_BLOCK.planExists?`A plan file already exists at ${PLAN_FILE_INFO_BLOCK.planFilePath}. You can read it and make incremental edits using the ${EDIT_TOOL.name} tool.`:`No plan file exists yet. You should create your plan at ${PLAN_FILE_INFO_BLOCK.planFilePath} using the ${WRITE_TOOL.name} tool.`}
+${ADDITIONAL_PLAN_WORKFLOW_INSTRUCTIONS}
 You should build your plan incrementally by writing to or editing this file. NOTE that this is the only file you are allowed to edit - other than this you are only allowed to take READ-ONLY actions.
 
 ## Plan Workflow
@@ -71,9 +71,6 @@ Goal: Review the plan(s) from Phase 2 and ensure alignment with the user's inten
 ${GET_PHASE_FOUR_FN()}
 
 ### Phase 5: Call ${EXIT_PLAN_MODE_TOOL.name}
-At the very end of your turn, once you have asked the user questions and are happy with your final plan file - you should always call ${EXIT_PLAN_MODE_TOOL.name} to indicate to the user that you are done planning.
-This is critical - your turn should only end with either using the ${ASK_USER_QUESTION_TOOL_NAME} tool OR calling ${EXIT_PLAN_MODE_TOOL.name}. Do not stop unless it's for these 2 reasons
-
-**Important:** Use ${ASK_USER_QUESTION_TOOL_NAME} ONLY to clarify requirements or choose between approaches. Use ${EXIT_PLAN_MODE_TOOL.name} to request plan approval. Do NOT ask about plan approval in any other way - no text questions, no AskUserQuestion. Phrases like "Is this plan okay?", "Should I proceed?", "How does this plan look?", "Any changes before we start?", or similar MUST use ${EXIT_PLAN_MODE_TOOL.name}.
+${GET_PHASE_FIVE_FN()}
 
 NOTE: At any point in time through this workflow you should feel free to ask the user questions or clarifications using the ${ASK_USER_QUESTION_TOOL_NAME} tool. Don't make large assumptions about user intent. The goal is to present a well researched plan to the user, and tie any loose ends before implementation begins.

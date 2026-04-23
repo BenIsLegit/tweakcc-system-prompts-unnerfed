@@ -4,7 +4,7 @@ description: >-
   Interactive interview script that walks users through configuring a Managed
   Agent from scratch — selecting tools, skills, files, environment settings —
   and emits setup and runtime code
-ccVersion: 2.1.105
+ccVersion: 2.1.118
 -->
 # Managed Agents — Onboarding Flow
 
@@ -104,15 +104,23 @@ Session creation blocks until all resources mount. Open the event stream before 
 
 ## 3. Emit the code
 
-Go straight from the last interview answer to the code — no preamble about the setup-vs-runtime split, no "the critical thing to internalize…", no lecture about \`agents.create()\` being one-time. The two-block structure below already shows that; don't narrate it. Generate **two clearly-separated blocks** per language detected (Python/TS/cURL — see SKILL.md → Language Detection):
+Go straight from the last interview answer to the code — no preamble about the setup-vs-runtime split, no "the critical thing to internalize…", no lecture about \`agents.create()\` being one-time. The two-block structure below already shows that; don't narrate it. Generate **two clearly-separated blocks**:
 
-**Block 1 — Setup (run once, store the IDs):**
-1. \`environments.create()\` → persist \`env_id\`
-2. \`agents.create()\` with everything from §Round A–C → persist \`agent_id\` and \`agent_version\`
+**Block 1 — Setup (run once, store the IDs).** Prefer emitting this as **YAML files + \`ant\` CLI commands** — agents and environments are version-controlled definitions, and the CLI flow is what users should check into their repo and run from CI. Fall back to SDK code only if the user explicitly wants setup in-language or the \`ant\` CLI is unavailable.
 
-Label: \`# ONE-TIME SETUP — run once, save the IDs to config/.env\`
+Emit:
+1. \`<name>.agent.yaml\` with everything from §Round A–C (flat: \`name\`, \`model\`, \`system\`, \`tools\`, \`mcp_servers\`, \`skills\`)
+2. \`<name>.environment.yaml\` with §Round C networking
+3. The apply commands:
+   \`\`\`sh
+   AGENT_ID=$(ant beta:agents create < <name>.agent.yaml --transform id -r)
+   ENV_ID=$(ant beta:environments create < <name>.environment.yaml --transform id -r)
+   # CI sync: ant beta:agents update --agent-id "$AGENT_ID" --version N < <name>.agent.yaml
+   \`\`\`
 
-**Block 2 — Runtime (run on every invocation):**
+See \`shared/anthropic-cli.md\` for the full CLI reference. If emitting SDK code instead, label it \`# ONE-TIME SETUP — run once, save the IDs to config/.env\` and call \`environments.create()\` → \`agents.create()\`.
+
+**Block 2 — Runtime (run on every invocation).** This is SDK code in the detected language (Python/TS/cURL — see SKILL.md → Language Detection). The runtime path needs to react programmatically to events (tool confirmations, custom tool results, reconnect), which is SDK territory — don't emit shell loops here.
 1. Load \`env_id\` + \`agent_id\` from config/env
 2. \`sessions.create(agent=AGENT_ID, environment_id=ENV_ID, resources=[...], vault_ids=[...])\`
 3. Open stream, \`events.send()\` the kickoff, loop until \`session.status_terminated\` or \`session.status_idle && stop_reason.type !== 'requires_action'\` (see \`shared/managed-agents-client-patterns.md\` Pattern 5 for the full gate — do not break on bare \`session.status_idle\`)

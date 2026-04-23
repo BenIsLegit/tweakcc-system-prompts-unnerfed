@@ -1,7 +1,7 @@
 <!--
 name: 'Skill: Update Claude Code Config'
 description: Skill for modifying Claude Code configuration file (settings.json).
-ccVersion: 2.1.108
+ccVersion: 2.1.118
 variables:
   - SETTINGS_FILE_LOCATION_PROMPT
   - HOOKS_CONFIGURATION_PROMPT
@@ -34,9 +34,9 @@ When the user's request is ambiguous, use AskUserQuestion to clarify:
 - Whether to add to existing arrays or replace them
 - Specific values when multiple options exist
 
-## Decision: Config Tool vs Direct Edit
+## Decision: /config command vs Direct Edit
 
-**Use the Config tool** for these simple settings:
+**Suggest the \`/config\` slash command** for these simple settings:
 - \`theme\`, \`editorMode\`, \`verbose\`, \`model\`
 - \`language\`, \`alwaysThinkingEnabled\`
 - \`permissions.defaultMode\`

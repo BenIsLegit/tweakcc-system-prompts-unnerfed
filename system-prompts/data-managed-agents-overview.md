@@ -4,7 +4,7 @@ description: >-
   Provides the agent with a comprehensive overview of the Managed Agents API
   architecture, mandatory agent-then-session flow, beta headers, documentation
   reading guide, and common pitfalls
-ccVersion: 2.1.105
+ccVersion: 2.1.118
 -->
 # Managed Agents — Overview
 
@@ -55,6 +55,7 @@ Managed Agents is in beta. The SDK sets required beta headers automatically:
 | Stream events / handle tool_use        | \`shared/managed-agents-events.md\` + language file       |
 | Set up environments                    | \`shared/managed-agents-environments.md\` + language file |
 | Upload files / attach repos            | \`shared/managed-agents-environments.md\` (Resources)     |
+| Define agents/environments as version-controlled YAML; drive the API from the shell | \`shared/anthropic-cli.md\` — \`ant beta:agents create < agent.yaml\`, \`--transform\`, \`@file\` inlining |
 | Store MCP credentials                  | \`shared/managed-agents-tools.md\` (Vaults section)       |
 | Call a non-MCP API / CLI that needs a secret | \`shared/managed-agents-client-patterns.md\` Pattern 9 — no container env vars; vaults are MCP-only; keep the secret host-side via a custom tool |
 

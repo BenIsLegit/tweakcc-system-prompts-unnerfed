@@ -136,17 +136,6 @@ RULES: dict[str, list[Rule]] = {
     ],
 
     # -------------------------------------------------------------------------
-    # agent-prompt-agent-hook.md — verify thoroughly, not "as few steps as possible"
-    # -------------------------------------------------------------------------
-    "agent-prompt-agent-hook.md": [
-        Rule(
-            stock="Use the available tools to inspect the codebase and verify the condition.\nUse as few steps as possible - be efficient and direct.",
-            unnerf="Use the available tools to inspect the codebase and verify the condition thoroughly. Take as many steps as needed to be confident in your verdict — do not cut corners or trust appearances. Check the actual code, run commands where useful, and confirm the condition is genuinely met rather than superficially met.",
-            description="hook verification: thorough over fast",
-        ),
-    ],
-
-    # -------------------------------------------------------------------------
     # agent-prompt-batch-slash-command.md — recipe writing: thorough not short
     # -------------------------------------------------------------------------
     "agent-prompt-batch-slash-command.md": [

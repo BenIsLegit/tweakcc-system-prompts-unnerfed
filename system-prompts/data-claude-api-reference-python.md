@@ -3,7 +3,7 @@ name: 'Data: Claude API reference — Python'
 description: >-
   Python SDK reference including installation, client initialization, basic
   requests, thinking, and multi-turn conversation
-ccVersion: 2.1.111
+ccVersion: 2.1.118
 -->
 # Claude API — Python
 
@@ -27,6 +27,67 @@ client = anthropic.Anthropic(api_key="your-api-key")
 # Async client
 async_client = anthropic.AsyncAnthropic()
 \`\`\`
+
+---
+
+## Client Configuration
+
+### Per-request overrides
+
+Use \`with_options()\` to override client settings for a single call without mutating the client:
+
+\`\`\`python
+client.with_options(timeout=5.0, max_retries=5).messages.create(
+    model="{{OPUS_ID}}",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Hello"}],
+)
+\`\`\`
+
+### Timeouts
+
+Default request timeout is 10 minutes. Pass a float (seconds) or an \`httpx.Timeout\` for granular control. On timeout the SDK raises \`anthropic.APITimeoutError\` (and retries per \`max_retries\`).
+
+\`\`\`python
+import httpx
+
+client = anthropic.Anthropic(timeout=20.0)
+client = anthropic.Anthropic(
+    timeout=httpx.Timeout(60.0, read=5.0, write=10.0, connect=2.0),
+)
+\`\`\`
+
+### Retries
+
+The SDK auto-retries connection errors, 408, 409, 429, and ≥500 with exponential backoff (default 2 retries). Set \`max_retries\` on the client or via \`with_options()\`; \`max_retries=0\` disables.
+
+### Async performance (aiohttp backend)
+
+For high-concurrency async workloads, install \`anthropic[aiohttp]\` and pass \`DefaultAioHttpClient\` instead of the default httpx backend:
+
+\`\`\`python
+from anthropic import AsyncAnthropic, DefaultAioHttpClient
+
+async with AsyncAnthropic(http_client=DefaultAioHttpClient()) as client:
+    ...
+\`\`\`
+
+### Custom HTTP client (proxy, base URL)
+
+Use \`DefaultHttpxClient\` / \`DefaultAsyncHttpxClient\` — not raw \`httpx.Client\` — so the SDK's default timeouts and connection limits are preserved:
+
+\`\`\`python
+from anthropic import Anthropic, DefaultHttpxClient
+
+client = Anthropic(
+    base_url="http://my.test.server.example.com:8083",  # or ANTHROPIC_BASE_URL env var
+    http_client=DefaultHttpxClient(proxy="http://my.test.proxy.example.com"),
+)
+\`\`\`
+
+### Logging
+
+Set \`ANTHROPIC_LOG=debug\` (or \`info\`) to enable SDK logging via the standard \`logging\` module.
 
 ---
 
@@ -225,6 +286,31 @@ except anthropic.APIStatusError as e:
         print(f"API error: {e.message}")
 except anthropic.APIConnectionError:
     print("Network error. Check internet connection.")
+\`\`\`
+
+---
+
+## Response Helpers
+
+Every response object exposes \`_request_id\` (populated from the \`request-id\` header) — log it when reporting failures to Anthropic. Despite the underscore prefix, this property is public.
+
+\`\`\`python
+message = client.messages.create(...)
+print(message._request_id)       # req_018EeWyXxfu5pfWkrYcMdjWG
+print(message.to_json())          # serialize the Pydantic model
+print(message.to_dict())          # plain dict
+\`\`\`
+
+To access raw headers or other response metadata, use \`.with_raw_response\`:
+
+\`\`\`python
+raw = client.messages.with_raw_response.create(
+    model="{{OPUS_ID}}",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Hello"}],
+)
+print(raw.headers.get("request-id"))
+message = raw.parse()  # the Message object messages.create() would have returned
 \`\`\`
 
 ---

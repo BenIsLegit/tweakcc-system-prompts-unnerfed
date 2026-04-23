@@ -3,7 +3,7 @@ name: 'Data: Streaming reference — Python'
 description: >-
   Python streaming reference including sync/async streaming and handling
   different content types
-ccVersion: 2.1.111
+ccVersion: 2.1.118
 -->
 # Streaming — Python
 
@@ -30,6 +30,22 @@ async with async_client.messages.stream(
     async for text in stream.text_stream:
         print(text, end="", flush=True)
 \`\`\`
+
+### Low-level: \`stream=True\`
+
+\`messages.stream()\` (above) is the recommended helper — it accumulates state and exposes \`text_stream\` / \`get_final_message()\`. If you only need the raw event iterator and want lower memory use, pass \`stream=True\` to \`messages.create()\` instead:
+
+\`\`\`python
+for event in client.messages.create(
+    model="{{OPUS_ID}}",
+    max_tokens=64000,
+    messages=[{"role": "user", "content": "Write a story"}],
+    stream=True,
+):
+    print(event.type)
+\`\`\`
+
+No final-message accumulation is done for you in this form.
 
 ---
 
@@ -167,3 +183,4 @@ except anthropic.APIStatusError as e:
 3. **Track token usage** — The \`message_delta\` event contains usage information
 4. **Use timeouts** — Set appropriate timeouts for your application
 5. **Default to streaming** — Use \`.get_final_message()\` to get the complete response even when streaming, giving you timeout protection without needing to handle individual events
+6. **Large \`max_tokens\` without streaming raises \`ValueError\`** — The SDK refuses non-streaming requests it estimates will exceed ~10 minutes (idle connections drop). Pass \`stream=True\` / use \`messages.stream()\`, or explicitly override \`timeout\`, to suppress the guard.

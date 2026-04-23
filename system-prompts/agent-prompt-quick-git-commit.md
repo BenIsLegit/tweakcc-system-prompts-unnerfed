@@ -1,9 +1,10 @@
 <!--
 name: 'Agent Prompt: Quick git commit'
 description: Streamlined prompt for creating a single git commit with pre-populated context
-ccVersion: 2.1.69
+ccVersion: 2.1.118
 variables:
-  - ATTRIBUTION_TEXT
+  - IS_BASH_ENV_FN
+  - ADDITIONAL_COMMIT_GUIDANCE
 -->
 ${""}## Context
 
@@ -31,14 +32,21 @@ Based on the above changes, create a single git commit:
    - Ensure the message accurately reflects the changes and their purpose (i.e. "add" means a wholly new feature, "update" means an enhancement to an existing feature, "fix" means a bug fix, etc.)
    - Draft a concise (1-2 sentences) commit message that focuses on the "why" rather than the "what"
 
-2. Stage relevant files and create the commit using HEREDOC syntax:
-\`\`\`
+2. Stage relevant files and create the commit:
+${IS_BASH_ENV_FN()?`\`\`\`
 git commit -m "$(cat <<'EOF'
-Commit message here.${ATTRIBUTION_TEXT?`
+Commit message here.${ADDITIONAL_COMMIT_GUIDANCE?`
 
-${ATTRIBUTION_TEXT}`:""}
+${ADDITIONAL_COMMIT_GUIDANCE}`:""}
 EOF
 )"
+\`\`\``:`\`\`\`
+git commit -m @'
+Commit message here.${ADDITIONAL_COMMIT_GUIDANCE?`
+
+${ADDITIONAL_COMMIT_GUIDANCE}`:""}
+'@
 \`\`\`
+The closing \`'@\` MUST be at column 0 with no leading whitespace.`}
 
 You have the capability to call multiple tools in a single response. Stage and create the commit using a single message. Do not use any other tools or do anything else. Do not send any other text or messages besides these tool calls.
