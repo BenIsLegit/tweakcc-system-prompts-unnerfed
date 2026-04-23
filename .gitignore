@@ -22,5 +22,8 @@ prompt-data-cache/
 system-prompts/*.diff.html
 
 # Claude Code / Serena / other tool state
-.claude/
+# Everything under .claude/ is local state EXCEPT the `skills/` subdir,
+# which holds project-scoped skill definitions that belong in git.
+.claude/*
+!.claude/skills/
 .serena/
