@@ -141,6 +141,8 @@ Counts are approximate. The full inventory is whatever `ls system-prompts/` show
 
 The prompt text in `system-prompts/*.md` was extracted from Claude Code by tweakcc, then modified. The original prompt content is Anthropic's copyright. I'm redistributing a modified subset under fair-use / research-use terms, same basis the tweakcc project operates on.
 
+The original code (the scripts in `scripts/`) is licensed **MIT** — see [`LICENSE`](LICENSE).
+
 The README, docs, and repo organization are **CC0 / public domain**.
 
 **This is not Anthropic-endorsed or Anthropic-supported.** Applying these will change Claude Code's behavior in ways that might not suit your workflow. Test in a throwaway session first. Keep the tweakcc binary backup so you can roll back.

@@ -1,0 +1,32 @@
+MIT License
+
+Copyright (c) 2026 Ben (BenIsLegit)
+
+Scope note: This MIT License applies to the original code in this repository
+— the scripts under scripts/. It does NOT apply to:
+
+  (a) the prompt text in system-prompts/*.md, which is derived from Claude
+      Code and remains the copyright of Anthropic. That content is
+      redistributed here in modified form on a fair-use / research-use basis,
+      as described in the README's "License / disclaimer" section; and
+
+  (b) the README, other documentation, and repository organization, which are
+      dedicated to the public domain under CC0.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
