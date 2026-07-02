@@ -1,3 +1,8 @@
+> [!IMPORTANT]
+> **This repo is unmaintained.** I've switched to Codex and don't really run Claude Code anymore, so I can't tell whether prompt edits for new releases actually help. And I'm not going to ship un-nerfs I haven't tested. The files here still work as a reference, and they still apply against the Claude Code version listed below. But don't wait around for updates when a new release lands.
+>
+> If you want something that's kept up to date, use [lukehutch/unnerfcc](https://github.com/lukehutch/unnerfcc). It started as a fork of this repo and has drifted a long way since. It comes with an installer script that handles the whole setup, plus instructions that let Claude un-nerf new releases on its own, so it keeps pace with new Claude Code versions. This one doesn't.
+
 # tweakcc system prompts — un-nerfed edition
 
 Modified [Claude Code](https://docs.claude.com/en/docs/claude-code/overview) system prompts that remove the "be brief, be minimal" directives and replace them with instructions to be thorough. These are the actual files I use daily. Nothing here is cleaned up for public consumption — this is the live set, including all in-progress un-nerfs.
